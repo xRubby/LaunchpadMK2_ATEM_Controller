@@ -2,25 +2,35 @@
 
 import mido
 import asyncio
+import sys
 from functions.midi_control import *
+from functions.atem_control import AtemControl
 
 async def main():
     input_name, output_name = find_launchpad()
 
     if not input_name or not output_name:
-        print("Launchpad MK2 non trovato!")
-        return
+        raise Exception("Launchpad MK2 non trovato!")
     
-    print(f"Connesso a Input: {input_name}, Output: {output_name}. Premi un tasto sul Launchpad.")
+    print(f"Launchpad connesso a Input: {input_name}, Output: {output_name}.")
+
+    atem_switcher = AtemControl()
+    if(atem_switcher.connect()):
+        print("Connesso a ATEM Switcher")
+    else:
+        raise Exception("Errore nella connessione a ATEM Switcher")
+    
+    
 
     try:
         inport = mido.open_input(input_name)
         outport = mido.open_output(output_name)
 
         keyboard_led(outport)
+
         
         live_check_task = asyncio.create_task(check_live_status(outport))
-        midi_task = asyncio.create_task(process_midi_input(inport, outport))
+        midi_task = asyncio.create_task(process_midi_input(inport, outport, atem_switcher))
 
         await asyncio.gather(live_check_task, midi_task)
 
@@ -41,6 +51,9 @@ async def main():
         except asyncio.CancelledError:
             print("Il task di lettura MIDI è stato cancellato.")
         
+        atem_switcher.disconnect()
+        print("Connessione ATEM chiusa.")
+
         keyboard_led(outport, "delete")
         inport.close()
         outport.close()
@@ -49,8 +62,12 @@ async def main():
 if __name__ == "__main__":
 
     try:
-        asyncio.run(main())
+        main_task = asyncio.run(main())
     except asyncio.exceptions.CancelledError:
         print("Programma terminato")
     except KeyboardInterrupt:
         print("Programma terminato")
+    except Exception as e:
+        print(f"Errore durante l'esecuzione: {e}")
+        print("errore")
+        sys.exit()
