@@ -20,13 +20,9 @@ async def main():
     else:
         raise Exception("Errore nella connessione a ATEM Switcher")
     
-    
-
     try:
         inport = mido.open_input(input_name) # type: ignore
         outport = mido.open_output(output_name) # type: ignore
-
-        keyboard_led(outport)
         
         live_check_task = asyncio.create_task(check_live_status(outport))
         midi_task = asyncio.create_task(process_midi_input(inport, outport, atem_switcher))
@@ -41,19 +37,18 @@ async def main():
         midi_task.cancel()
         
         try:
-            await live_check_task
+            await live_check_task # type: ignore
         except asyncio.CancelledError:
             print("Il task del controllo live è stato cancellato.")
 
         try:
-            await midi_task
+            await midi_task # type: ignore
         except asyncio.CancelledError:
             print("Il task di lettura MIDI è stato cancellato.")
         
         atem_switcher.disconnect()
         print("Connessione ATEM chiusa.")
 
-        keyboard_led(outport, "delete")
         inport.close()
         outport.close()
         print("Connessioni MIDI chiuse.")

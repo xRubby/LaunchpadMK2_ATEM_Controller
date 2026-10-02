@@ -1,56 +1,23 @@
-import PyATEMMax
+import mido
+import time
 
 
-switcher = PyATEMMax.ATEMMax()
 
-found = False
+devices_precedenti = set(mido.get_input_names())
 
-for i in range(1, 255):
-    ip = f"192.168.1.{i}"
+while True:
+    devices_attuali = set(mido.get_input_names())
 
-    print(f"Checking {ip}", end="\r")
+    # Device collegati
+    collegati = devices_attuali - devices_precedenti
+    for device in collegati:
+        print(f"Device MIDI collegato: {device}")
 
-    switcher.ping(ip)
+    # Device scollegati
+    scollegati = devices_precedenti - devices_attuali
+    for device in scollegati:
+        print(f"Device MIDI scollegato: {device}")
 
-    if switcher.waitForConnection(
-        infinite=False,
-        waitForFullHandshake=False
-    ):
-        print(f"\nATEM switcher found at {ip}")
-        found = True
-        break
+    devices_precedenti = devices_attuali
 
-    switcher.disconnect()
-
-
-if not found:
-    print("\nATEM switcher not found")
-    switcher.disconnect()
-    exit()
-
-
-# Il ping ha già stabilito la connessione.
-# Non facciamo switcher.connect(ip)!
-
-# Aspettiamo che lo stato iniziale sia disponibile
-switcher.waitForConnection()
-
-print("PVW:", switcher.previewInput[0].videoSource.value)
-print("PGM:", switcher.programInput[0].videoSource.value)
-
-
-try:
-    while True:
-        pgm = switcher.programInput[0].videoSource
-        pvw = switcher.previewInput[0].videoSource
-
-        print(
-            f"PVW: {pvw.name} ({pvw.value}) | "
-            f"PGM: {pgm.name} ({pgm.value})"
-        )
-
-except KeyboardInterrupt:
-    print("\nChiusura...")
-
-finally:
-    switcher.disconnect()
+    time.sleep(1)
