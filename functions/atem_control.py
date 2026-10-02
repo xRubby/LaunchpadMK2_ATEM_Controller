@@ -23,12 +23,14 @@ class AtemControl:
         """ Prova a connettersi all'ATEM se un IP è stato trovato """
         ip = self.searchAtemIp()
         if ip:
-            self.switcher.atem.defaultConnectionTimeout = 2.5
             self.switcher.connect(ip)
-            connected = self.switcher.waitForConnection(infinite=False, waitForFullHandshake=False)
+            connected = self.switcher.waitForConnection()
             if(connected):
 
                 self.connected = True 
+
+                print("PGM:", self.getProgramNumber())
+                print("PVW:", self.getPreviewNumber())
                 return True
             else:
                 self.switcher.disconnect()
@@ -39,6 +41,8 @@ class AtemControl:
     def on_connected(self, params):
         print("ATEM Connesso")
         self.connected = True
+        self.switcher.setTransitionStyle(0, "mix")
+        self.switcher.setTransitionMixRate(0, 50)
 
     def disconnect(self) -> bool:
         """ Disconnette l'ATEM solo se era connesso """
@@ -62,11 +66,15 @@ class AtemControl:
             self.switcher.setProgramInputVideoSource(0, input_number)
 
 
+    def change_program_auto(self):
+        if self.connected:
+            self.switcher.execAutoME(0)
+
     def getPreviewNumber(self):
         if self.connected:
-            return
+            return self.switcher.previewInput[0].videoSource.value
         
     def getProgramNumber(self):
         if self.connected:
-            return
+            return self.switcher.programInput[0].videoSource.value
         

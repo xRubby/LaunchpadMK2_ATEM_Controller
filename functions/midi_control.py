@@ -74,7 +74,7 @@ def keyboard_led(outport, type="create"):
             outport.send(mido.Message('note_on', note=i, velocity=white_color))
             time.sleep(0.1)
 
-        for i in range(41, 42):
+        for i in range(41, 43):
             outport.send(mido.Message('note_on', note=i, velocity=red_color))
             time.sleep(0.1)
     elif type in "delete":
@@ -86,7 +86,7 @@ def keyboard_led(outport, type="create"):
             outport.send(mido.Message('note_off', note=i, velocity=no_color))
             time.sleep(0.1)
 
-        for i in range(41, 42):
+        for i in range(41, 43):
             outport.send(mido.Message('note_off', note=i, velocity=no_color))
             time.sleep(0.1)
 
@@ -122,19 +122,28 @@ def change_selected_camera(inport, outport, atem_switcher: AtemControl, tasti: L
                 
             
 
-        if note_value == 41:
+        if note_value in (41, 42):
+
+            program = atem_switcher.getProgramNumber()
+            print(f"Program corrente: {program}")
 
             if program:
-                outport.send(mido.Message('note_on', note=program, velocity=white_color))
+                outport.send(mido.Message('note_on', note=program, velocity=green_color))
             elif preview == 0 or preview == program:
                 return
             program = preview
             tasto_program = getTastoByValore(tasti, program)
             try:
-                atem_switcher.change_program(tasto_program.getCanaleSwitcher())
+                match note_value:
+                    case 41:
+                        atem_switcher.change_program(tasto_program.getCanaleSwitcher())
+                    case 42:
+                        atem_switcher.change_program_auto()
                 outport.send(mido.Message('note_on', note=program, velocity=red_color))
+                
             except Exception as e:
                 print(f"Errore durante il cambio di program: {e}")
+
     except Exception as e:
         print(f"Errore: {e}")
 
