@@ -9,7 +9,7 @@ from functions.atem_control import AtemControl
 from launchpad.Tasto import Tasto
 
 
-from APIs.youtube_api import isLive
+#from APIs.youtube_api import isLive
 
 
 green_color = 123
@@ -49,7 +49,7 @@ def create_tasti() -> List[Tasto]:
     tasti = []
 
     for i, canale_switcher in zip(range(81, 89), range(1, 9)):
-        tasti.append(Tasto(i,white_color,canale_switcher, "Video Source"))
+        tasti.append(Tasto(i, white_color, canale_switcher, "Video Source"))
 
     tasti.append(Tasto(41, red_color, 0, "Cut"))
     tasti.append(Tasto(42, red_color, 0, "Auto"))
@@ -114,6 +114,7 @@ def change_selected_camera(inport, outport, atem_switcher: AtemControl, tasti: L
 
             if last_preview != program:
                 try:
+                    print(f"Cambio preview a: {tasto_preview.getCanaleSwitcher()}")
                     atem_switcher.change_preview(tasto_preview.getCanaleSwitcher())
                     outport.send(mido.Message('note_on', note=note_value, velocity=green_color))
                 except Exception as e:
@@ -133,7 +134,7 @@ def change_selected_camera(inport, outport, atem_switcher: AtemControl, tasti: L
                 atem_switcher.change_program(tasto_program.getCanaleSwitcher())
                 outport.send(mido.Message('note_on', note=program, velocity=red_color))
             except Exception as e:
-                print(f"Errore durante il cambio di preview: {e}")
+                print(f"Errore durante il cambio di program: {e}")
     except Exception as e:
         print(f"Errore: {e}")
 
@@ -141,7 +142,7 @@ async def check_live_status(outport):
     try:
         if os.path.exists(credentials_file):
             while True:
-                live_status = await isLive()
+                live_status = False #await isLive()
                 if live_status:
                     for i in range(104, 112):
                         outport.send(mido.Message('control_change', control=i, value=green_color))

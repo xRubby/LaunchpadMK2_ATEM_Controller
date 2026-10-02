@@ -21,8 +21,7 @@ class AtemControl:
 
     def connect(self) -> bool:
         """ Prova a connettersi all'ATEM se un IP è stato trovato """
-        ip = "192.168.1.138"
-        #ip = self.searchAtemIp()
+        ip = self.searchAtemIp()
         if ip:
             self.switcher.atem.defaultConnectionTimeout = 2.5
             self.switcher.connect(ip)

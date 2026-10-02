@@ -23,11 +23,10 @@ async def main():
     
 
     try:
-        inport = mido.open_input(input_name)
-        outport = mido.open_output(output_name)
+        inport = mido.open_input(input_name) # type: ignore
+        outport = mido.open_output(output_name) # type: ignore
 
         keyboard_led(outport)
-
         
         live_check_task = asyncio.create_task(check_live_status(outport))
         midi_task = asyncio.create_task(process_midi_input(inport, outport, atem_switcher))
